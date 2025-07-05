@@ -1,0 +1,113 @@
+#include <opencv2/opencv.hpp>
+#include <string>
+#include<iostream>
+using namespace cv;
+using namespace std;
+int main() {
+    //讀取kana圖片
+    String file_path = "C:\\Users\\fsp10\\OneDrive\\桌面\\資訊科作業\\HW2-1_112202\\kana.jpg";// 設定圖片路徑
+    Mat img = imread(file_path, IMREAD_COLOR);		
+    //讀取黑白圖片
+    String black_path = "C:\\Users\\fsp10\\OneDrive\\桌面\\資訊科作業\\HW2-1_112202\\STAR.jpg";// 設定圖片路徑
+    Mat img3 = imread(black_path, -1);
+    //設定變數，讓使用者選擇要輸出甚麼視窗
+    char x;//x:選擇顯示哪些視窗   
+    //先在這裡做圖片運算，再根據輸入內容決定要顯示哪些圖片
+    int width = 256, height = 256;
+    Mat resized_img, resized_imgb, brighter_img, bright_img, combined_img;
+    Mat img2 = img(Range(1, 964), Range(374, 1337));
+    Mat h_concat_1, v_concat_1;	// 宣告一個新的Mat，準備放組合好的圖片
+    resize(img2, resized_img, Size(width, height), INTER_LINEAR);
+    resize(img3, resized_imgb, Size(width, height), INTER_LINEAR);         
+    //若沒選擇輸出增加亮度的圖片，但圖片組合仍需要使用到bright_img，所以預設一個bright_img
+    bright_img = resized_img + Scalar(40, 40, 40);
+    //圖片相加
+    combined_img = resized_img + resized_imgb;
+    //圖片組合    
+    vector<Mat> results = { resized_img, resized_imgb,bright_img,combined_img };		// 兩張處理好的圖片放入陣列results
+    hconcat(results, h_concat_1);
+    vector<Mat>  results_2 = { h_concat_1,h_concat_1,h_concat_1,h_concat_1 };
+    vconcat(results_2, v_concat_1);
+    while (true) {
+        cout << "請選擇要輸出哪個圖片" << endl;
+        cout << "a:顯示Original_Image(原圖)" << endl;
+        cout << "b:顯示Cropped_Image(剪裁後的原圖)" << endl;
+        cout << "c:顯示Resized_Image(縮小後的剪裁圖片)" << endl;
+        cout << "d:顯示black_img(黑白圖片)" << endl;
+        cout << "e:顯示Resized_Imageb(縮小後的黑白圖片)" << endl;
+        cout << "f:顯示result_img(加權後的圖片)" << endl;
+        cout << "g:顯示brighter_img(增加對比度的Cropped Image)" << endl;
+        cout << "h:顯示bright_img(增加亮度的Cropped Image)" << endl;
+        cout << "i:顯示combined_img(原圖和黑白圖片相加)" << endl;
+        cout << "j:顯示final_img(最終４＊４組合大圖)" << endl; //需要輸入J才會顯示最終圖片，執行時才會出現結果
+        cout << "s:停止輸出，結束程式" << endl;
+        cin >> x;
+        x = tolower(x); // 轉換為小寫字母    
+        if (x == 'a') {
+            imshow("Original_Image", img);    // 顯示原始圖片
+            waitKey(0);
+        }
+        else if (x == 'b') {
+            imshow("Cropped_Image", img2);    // 顯示剪裁後圖片
+            waitKey(0);
+        }
+        else if (x == 'c') {
+            imshow("Resized_Image", resized_img);
+            waitKey(0);
+        }
+        else if (x == 'd') {
+            imshow("black_img", img3);
+            waitKey(0);
+        }
+        else if (x == 'e') {
+            imshow("Resized_Imageb", resized_imgb);
+            waitKey(0);
+        }
+        else if (x == 'f') {
+            //addweight
+            Mat result;
+            double alpha,beta,gamma; 
+            cout << "請輸入想改變的加權" << endl;
+            cout << "請先輸入彩圖的透明度，再輸入黑白圖的透明度，最後輸入要額外增加的亮度" << endl;
+            cin >> alpha >> beta>>gamma;
+            addWeighted(resized_img, alpha, resized_imgb, beta, gamma, result);
+            imshow("result_img", result);
+            waitKey(0);
+        }
+        else if (x == 'g') {
+            //增加對比度
+            int y;//y:調整對比度
+            cout << "請輸入要更改的對比度" << endl;
+            cin >> y;
+            brighter_img = resized_img * y;
+            imshow("brighter_img", brighter_img);
+            waitKey(0);
+        }
+        else if (x == 'h') {
+            //增加亮度
+            int B, G, R;
+            cout << "請輸入B、G、R三個通道個別要加的值" << endl;
+            cin >> B >> G >> R;
+            bright_img = resized_img + Scalar(B, G, R);
+            imshow("bright_img", bright_img);
+            waitKey(0);
+        }
+        else if (x == 'i') {
+            imshow("combined_img", combined_img);
+            waitKey(0);
+        }
+        else if (x == 'j') {
+            waitKey(0);          
+            imshow("final_img", v_concat_1);
+            waitKey(0);
+            imwrite("final.png", v_concat_1);
+        }
+        else if (x == 's') {
+            break; // 結束程式
+        }
+        else {
+            cout << "輸入錯誤，請重新輸入" << endl;
+        }
+    }
+
+}
